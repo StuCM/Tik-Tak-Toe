@@ -1,0 +1,12 @@
+.board-contianer {
+    display:grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 80px);
+    gap: 3px;
+}
+
+.cell {
+    background: grey;
+    height: 100%;
+    width: 100%;
+}
