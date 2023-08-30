@@ -67,8 +67,12 @@ const GameController = (() => {
 
     const playerTurn = (event) => {
         if(event.target.classList.contains("cell")){
-            GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
-            _currentPlayer.setMove(Number((event.target.id)))
+            if(!event.target.textContent){
+                GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
+                _currentPlayer.setMove(Number((event.target.id)))
+            }
+            else { return }
+            
         }
     }
 
