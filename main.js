@@ -1,16 +1,37 @@
 const GameBoard = (() => {
-    const board = new Array(9).fill(" ");
+    const _wins = [
+        [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
+    ]
+    const board = new Array(9).fill(null);
+
     const placeSign = (sign, index) => {
-        board.splice(index, 0, sign);
+        board.splice(index, 1, sign);
         const cell = DisplayController.getCell(index);
         cell.textContent += sign;
+        console.log(board)
     }
-    return {board, placeSign}
+    const checkWin = (player) => {
+        const moves = player.getMoves;
+        if(moves.length < 3) {
+            return;
+        }
+        return _wins.some(combinations => {
+            return combinations.every(index => {
+                return moves.includes(index);
+            })
+        })
+    }
+    return {board, placeSign, checkWin}
 })();
 
 const Player = (name, playerSign) => {
     let getSign = playerSign;
-    return {name, getSign}
+    let _moves = [];
+    const getMoves = _moves;
+    const setMove = (index) => {
+        _moves.push(index)
+    }
+    return {name, getSign, getMoves, setMove}
 }
 
 const GameController = (() => {
@@ -27,28 +48,35 @@ const GameController = (() => {
     const player1 = Player("player1", "X")   
     const player2 = Player("player2", "O")  
     let turn = 1; 
-    let currentPlayer = player1;
+    let _currentPlayer = player1;
 
     const runGame = () => {
         DisplayController.createBoard();
         document.addEventListener("click", (event) => {
+            console.log("event", event)
             playerTurn(event)
             turn++;
+            let hasWon = GameBoard.checkWin(_currentPlayer)
+            console.log("winner", hasWon)
+            if (hasWon) {
+                console.log(_currentPlayer.name + " has won")
+            }
             _checkTurn();
         })          
     }
 
     const playerTurn = (event) => {
         if(event.target.classList.contains("cell")){
-            GameBoard.placeSign(currentPlayer.getSign, event.target.id)
+            GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
+            _currentPlayer.setMove(Number((event.target.id)))
         }
     }
 
     const _checkTurn = () => {
         if(turn % 2 === 0) {
-            currentPlayer = player2
+            _currentPlayer = player2
         }
-        else currentPlayer = player1
+        else _currentPlayer = player1
     }
     return { runGame }
 })();
