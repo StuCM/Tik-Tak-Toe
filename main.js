@@ -4,11 +4,14 @@ const GameBoard = (() => {
     ]
     const board = new Array(9).fill(null);
 
-    const _isMoves = board.length < 9;
+    const isMoves = (gameBoard = board) => {
+        return gameBoard.some((cell) => {
+        return cell === null;
+    })};
 
     const placeSign = (sign, index) => {
         board.splice(index, 1, sign);
-        const cell = DisplayController.getCell(index);
+        let cell = DisplayController.getCell(index);
         cell.textContent += sign;
         console.log(board)
     }
@@ -16,17 +19,19 @@ const GameBoard = (() => {
     const checkWin = (player) => {
         const moves = player.getMoves;
         if(moves.length < 3) {
-            return;
+            return false;
         }
         let win = _wins.some(combinations => {
                     return combinations.every(index => {
                         return moves.includes(index);
                     })
         })
-        if (!_isMoves && !win) { return "draw"}
+        console.log("win", win, isMoves, (!isMoves || win))
+        if(!isMoves) { return "draw" }
+        else { return win }
     }
 
-    return {board, placeSign, checkWin}
+    return {board, placeSign, checkWin, isMoves}
 })();
 
 const Player = (name, playerSign) => {
@@ -37,6 +42,79 @@ const Player = (name, playerSign) => {
         _moves.push(index)
     }
     return {name, getSign, getMoves, setMove}
+}
+
+const AiController = (player1, aiPlayer) => {
+
+    const _checkForWin = (player1, aiPlayer) => {
+        if(GameBoard.checkWin(player1)) {
+            return -10;
+        }
+        else if(GameBoard.checkWin(aiPlayer)) {
+            return 10;
+        }
+        else { return 0 }
+    }
+    const _minimax = (board, depth, isMax) => {
+        let score = _checkForWin(player1, aiPlayer);
+        console.log("mm running",score)
+        if (score !== 0) {
+            return score;
+        }
+
+        if(GameBoard.isMoves(board) === 'draw') {
+            return 0;
+        }
+
+        if(isMax) {
+            let best = -1000;
+            board.forEach((cell, index) => {
+                if(board[index] === null){
+                    console.log("sign", aiPlayer.getSign)
+                    board[index] = aiPlayer.getSign
+                    best = Math.max(best, _minimax(board, depth +1, !isMax));
+                    board[index] = "1"
+                }
+            })
+            console.log("mm" , best)
+            return best;
+        }
+        else {
+            let best = 1000;
+            board.forEach((cell, index) => {
+                if(board[index] === null){
+                    board[index] = player1.getSign
+                    best = Math.min(best, _minimax(board, depth +1, !isMax));
+                    board[index] = "1"
+                }
+            })
+            console.log("mm" , best)
+            return best;
+        }
+    }
+
+    const _findBestMove = (board, aiPlayer) => {
+        let bestValue = -1000;
+        let bestMove = -1;
+
+        board.forEach((cell, index) => {
+            if(board[index] === null) {
+                board[index] = aiPlayer.getSign
+            }
+            let moveVal = _minimax(board, 0, true)
+            board[index] = null;
+            if(moveVal > bestValue) {
+                bestMove = index;
+                bestValue = moveVal;
+            }
+        })
+        console.log("best move is ", bestMove)
+        return bestMove;
+    }
+
+    const bestMove = () => _findBestMove(GameBoard.board, aiPlayer)
+
+    return { bestMove }
 }
 
 const GameController = (() => {
@@ -50,35 +128,43 @@ const GameController = (() => {
         }
     }
 
+    //initalise the game and players
     const player1 = Player("player1", "X")   
-    const player2 = Player("player2", "O")  
+    const player2 = Player("player2", "O") 
+    const ai = AiController(player1, player2)
     let turn = 1; 
     let _currentPlayer = player1;
 
+    //start the game and add controls
     const runGame = () => {
         DisplayController.createBoard();
-        document.addEventListener("click", (event) => {
-            console.log("event", event)
-            playerTurn(event)
-            turn++;
-            let hasWon = GameBoard.checkWin(_currentPlayer)
-            console.log("winner", hasWon)
-            if (hasWon) {
-                console.log(_currentPlayer.name + " has won")
-            }
-            _checkTurn();
-        })          
+
+        document.addEventListener("click", (event) => { playerTurn(event) })          
     }
 
     const playerTurn = (event) => {
-        if(event.target.classList.contains("cell")){
-            if(!event.target.textContent){
-                GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
-                _currentPlayer.setMove(Number((event.target.id)))
+        if(event.target.classList.contains("cell") && event.target.textContent === ""){
+            GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
+            _currentPlayer.setMove(Number((event.target.id)))
+            turn++
+            let hasWon = GameBoard.checkWin(_currentPlayer)
+            hasWon ? console.log(_currentPlayer.name + " has won") : null;
+            _checkTurn();
+            if(_currentPlayer === player2) {
+                aiTurn()
             }
-            else { return }
-            
         }
+        return;
+    }
+
+    const aiTurn = () => {
+        console.log("1", _currentPlayer.getSign, ai.bestMove())
+        GameBoard.placeSign(_currentPlayer.getSign, ai.bestMove());
+        _currentPlayer.setMove(ai.bestMove());
+        turn++;
+        let hasWon = GameBoard.checkWin(_currentPlayer)
+        hasWon ? console.log(_currentPlayer.name + " has won") : null;
+        _checkTurn();
     }
 
     const _checkTurn = () => {
@@ -87,7 +173,7 @@ const GameController = (() => {
         }
         else _currentPlayer = player1
     }
-    return { runGame }
+    return { runGame, player2 }
 })();
 
 const DisplayController = (() => {
@@ -110,58 +196,6 @@ const DisplayController = (() => {
     return { createBoard, getCell, getPlayerSelection }
 })();
 
-const AiController = ((player1, aiPlayer) => {
-    const checkForWin = (player1, aiPlayer) => {
-        if(GameBoard.checkWin(player1) || !GameBoard.checkWin(aiPlayer)) {
-            return -10;
-        }
-        else if(!GameBoard.checkWin(player1) || GameBoard.checkWin(aiPlayer)) {
-            return 10;
-        }
-        else { return 0 }
-    }
-    const minimax = (board, depth, isMax) => {
-        const player1 = GameController.player1;
-        const aiPlayer = GameController.player2;
-        let score = checkForWin(player1, aiPlayer);
 
-        if (score !== 0) {
-            return score;
-        }
-
-        if(score === 'draw') {
-            return 0;
-        }
-
-        if(isMax) {
-            let best = -1000;
-            let board = GameBoard.board
-            board.forEach((cell, index) => {
-                if(board[index] === null){
-                    board.placeSign(aiPlayer.getSign, index)
-                    best = Math.max(best, minimax(board, depth +1, !isMax));
-                    board.placeSign(null, index);
-                }
-            })
-            return best;
-        }
-        else {
-            let best = 1000;
-            let board = GameBoard.board
-            board.forEach((cell, index) => {
-                if(board[index] === null){
-                    board.placeSign(player1layer.getSign, index)
-                    best = Math.min(best, minimax(board, depth +1, !isMax));
-                    board.placeSign(null, index);
-                }
-            })
-            return best;
-        }
-    }
-
-    const findBestMove = () => {
-
-    }
-})()
 
 window.onload = GameController.runGame
