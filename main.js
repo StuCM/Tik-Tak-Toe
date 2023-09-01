@@ -4,23 +4,28 @@ const GameBoard = (() => {
     ]
     const board = new Array(9).fill(null);
 
+    const _isMoves = board.length < 9;
+
     const placeSign = (sign, index) => {
         board.splice(index, 1, sign);
         const cell = DisplayController.getCell(index);
         cell.textContent += sign;
         console.log(board)
     }
+
     const checkWin = (player) => {
         const moves = player.getMoves;
         if(moves.length < 3) {
             return;
         }
-        return _wins.some(combinations => {
-            return combinations.every(index => {
-                return moves.includes(index);
-            })
+        let win = _wins.some(combinations => {
+                    return combinations.every(index => {
+                        return moves.includes(index);
+                    })
         })
+        if (!_isMoves && !win) { return "draw"}
     }
+
     return {board, placeSign, checkWin}
 })();
 
@@ -104,5 +109,59 @@ const DisplayController = (() => {
 
     return { createBoard, getCell, getPlayerSelection }
 })();
+
+const AiController = ((player1, aiPlayer) => {
+    const checkForWin = (player1, aiPlayer) => {
+        if(GameBoard.checkWin(player1) || !GameBoard.checkWin(aiPlayer)) {
+            return -10;
+        }
+        else if(!GameBoard.checkWin(player1) || GameBoard.checkWin(aiPlayer)) {
+            return 10;
+        }
+        else { return 0 }
+    }
+    const minimax = (board, depth, isMax) => {
+        const player1 = GameController.player1;
+        const aiPlayer = GameController.player2;
+        let score = checkForWin(player1, aiPlayer);
+
+        if (score !== 0) {
+            return score;
+        }
+
+        if(score === 'draw') {
+            return 0;
+        }
+
+        if(isMax) {
+            let best = -1000;
+            let board = GameBoard.board
+            board.forEach((cell, index) => {
+                if(board[index] === null){
+                    board.placeSign(aiPlayer.getSign, index)
+                    best = Math.max(best, minimax(board, depth +1, !isMax));
+                    board.placeSign(null, index);
+                }
+            })
+            return best;
+        }
+        else {
+            let best = 1000;
+            let board = GameBoard.board
+            board.forEach((cell, index) => {
+                if(board[index] === null){
+                    board.placeSign(player1layer.getSign, index)
+                    best = Math.min(best, minimax(board, depth +1, !isMax));
+                    board.placeSign(null, index);
+                }
+            })
+            return best;
+        }
+    }
+
+    const findBestMove = () => {
+
+    }
+})()
 
 window.onload = GameController.runGame
