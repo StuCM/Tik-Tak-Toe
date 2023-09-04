@@ -33,6 +33,7 @@ const GameBoard = (() => {
                     })
         })
         console.log("win", win, isMoves, (!isMoves || win))
+        console.log("this is win")
         if(!isMoves) { return "draw" }
         else { return win }
     }
@@ -56,13 +57,15 @@ const AiController = (player1, aiPlayer) => {
         return board.filter(cell => cell !== 'X' && cell !== 'O' );
     }
 
-    const _minimax = (board, depth, isMax) => {
+    const minimax = (board, depth, isMax) => {
 
         if(GameBoard.checkWin(player1, board)){
-            return {score:-10}
+            console.log("run1")
+            return {score:depth -10}
         }
         else if(GameBoard.checkWin(aiPlayer, board)){
-            return {score:10}
+            console.log("run2")
+            return {score:10 - depth}
         }
         else if(!GameBoard.isMoves(board)){
             return {score:0}
@@ -70,8 +73,20 @@ const AiController = (player1, aiPlayer) => {
 
         console.log("board", GameBoard.board)
         let emptySpaces = findEmptySpaces(board)
-        console.log("spaces", emptySpaces)
+
+        console.debug("spaces", emptySpaces)
         let moves = [];
+        console.log("THIS", emptySpaces[4])
+
+        //logic for first move to speed up process
+        if(board[4] === 4){
+            return {index: 4}
+        }
+        else if(emptySpaces.length > 7){
+            const corners = [0,2,6,8];
+            return { index: corners[Math.floor(Math.random()*corners.length)]}
+        }
+        
         let player = isMax ? aiPlayer : player1;
         console.log("player", player)
 
@@ -82,12 +97,12 @@ const AiController = (player1, aiPlayer) => {
             board[index] = player.getSign;
 
             if(isMax){
-                let result = _minimax(board, depth + 1, false)
+                let result = minimax(board, depth + 1, false)
                 move.score = result.score
                 move.depth = depth;
             }
             else{
-                let result = _minimax(board, depth + 1, true)
+                let result = minimax(board, depth + 1, true)
                 move.score = result.score;
                 move.depth = depth;
             }
@@ -118,7 +133,7 @@ const AiController = (player1, aiPlayer) => {
         }
         return moves[bestMove];
     }
-    return { _minimax }
+    return { minimax }
 }
 
 const GameController = (() => {
@@ -146,24 +161,27 @@ const GameController = (() => {
         document.addEventListener("click", (event) => { playerTurn(event) })          
     }
 
-    const playerTurn = (event) => {
+    const playerTurn = async (event) => {
         if(event.target.classList.contains("cell") && event.target.textContent === ""){
             GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
-            _currentPlayer.setMove(Number((event.target.id)))
             turn++
             let hasWon = GameBoard.checkWin(_currentPlayer)
             hasWon ? console.log(_currentPlayer.name + " has won") : null;
             _checkTurn();
-            if(_currentPlayer === player2) {
-                aiTurn()
-            }
+            
         }
-        return;
+        if(_currentPlayer === player2) {
+            await new Promise(resolve => setTimeout(resolve, 750));
+            aiTurn()
+        }
     }
 
     const aiTurn = () => {
-        let bestMove = ai._minimax(GameBoard.board, 0, true)
-        console.log("cpu", bestMove)
+        let bestMove = ai.minimax(GameBoard.board, 0, true)
+        console.log("best move", bestMove)
+        GameBoard.placeSign(_currentPlayer.getSign, bestMove.index);
+        turn++;
+        _checkTurn()
     }
 
     const _checkTurn = () => {
