@@ -2,11 +2,11 @@ const GameBoard = (() => {
     const _wins = [
         [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
     ]
-    const board = new Array(9).fill(null);
+    const board = new Array(9).fill().map((_, index) => index);
 
     const isMoves = (gameBoard = board) => {
-        return gameBoard.some((cell) => {
-        return cell === null;
+        return gameBoard.some((cell, index) => {
+        return cell === index;
     })};
 
     const placeSign = (sign, index) => {
@@ -16,14 +16,20 @@ const GameBoard = (() => {
         console.log(board)
     }
 
-    const checkWin = (player) => {
-        const moves = player.getMoves;
+    const checkWin = (player, gameBoard = board) => {
+        const sign = player.getSign;
+        const moves = new Array(9).fill().map((_, index) => index);
+        gameBoard.map((cell, index) => {
+            if(cell === sign) {
+                moves.splice(index, 1, cell)
+            }
+        })
         if(moves.length < 3) {
             return false;
         }
         let win = _wins.some(combinations => {
                     return combinations.every(index => {
-                        return moves.includes(index);
+                        return moves[index] === sign;
                     })
         })
         console.log("win", win, isMoves, (!isMoves || win))
@@ -46,79 +52,73 @@ const Player = (name, playerSign) => {
 
 const AiController = (player1, aiPlayer) => {
 
-    const _checkForWin = (player1, aiPlayer) => {
-        if(GameBoard.checkWin(player1)) {
-            return -10;
-        }
-        else if(GameBoard.checkWin(aiPlayer)) {
-            return 10;
-        }
-        else { return 0 }
+    const findEmptySpaces = (board) => {
+        return board.filter(cell => cell !== 'X' && cell !== 'O' );
     }
+
     const _minimax = (board, depth, isMax) => {
-        let score = _checkForWin(player1, aiPlayer);
-        console.log("mm running",score)
-        if (score !== 0) {
-            return score;
+
+        if(GameBoard.checkWin(player1, board)){
+            return {score:-10}
+        }
+        else if(GameBoard.checkWin(aiPlayer, board)){
+            return {score:10}
+        }
+        else if(!GameBoard.isMoves(board)){
+            return {score:0}
         }
 
-        console.log("moves",GameBoard.isMoves(board))
-        if(!GameBoard.isMoves(board)) {
-            return 0;
+        console.log("board", GameBoard.board)
+        let emptySpaces = findEmptySpaces(board)
+        console.log("spaces", emptySpaces)
+        let moves = [];
+        let player = isMax ? aiPlayer : player1;
+        console.log("player", player)
+
+        for(let i = 0; i < emptySpaces.length; i++){
+            let move = {};
+            let index = emptySpaces[i]
+            move.index = board[index];
+            board[index] = player.getSign;
+
+            if(isMax){
+                let result = _minimax(board, depth + 1, false)
+                move.score = result.score
+                move.depth = depth;
+            }
+            else{
+                let result = _minimax(board, depth + 1, true)
+                move.score = result.score;
+                move.depth = depth;
+            }
+
+            board[index] = move.index;
+
+            moves.push(move);
         }
 
-        if(isMax) {
-            let best = -1000;
-            for(let i = 0; i < board.length; i++ ) {
-                console.log("loop max", i , board[i] === null)
-                if(board[i] === null){
-                    board[i] = aiPlayer.getSign
-                    console.log("min board", board)
-                    best = Math.max(best, _minimax(board, depth +1, !isMax));
-                    board[i] = null
+        var bestMove;
+        if(isMax){
+            let bestScore = -1000;
+            for(let i =0; i< moves.length; i++){
+                if(moves[i].score > bestScore){
+                    bestScore = moves[i].score;
+                    bestMove = i;
                 }
             }
-            console.log("mm" , best)
-            return best;
         }
-        else {
-            let best = 1000;
-            for(let i = 0; i < board.length; i++ ){
-                console.log("loop min", i , board[i] === null)
-                if(board[i] === null){
-                    board[i] = player1.getSign
-                    console.log("min p board", board)
-                    best = Math.min(best, _minimax(board, depth +1, !isMax));
-                    board[i] = null
+        else{
+            let bestScore = 1000;
+            for(let i =0; i< moves.length; i++){
+                if(moves[i].score < bestScore){
+                    bestScore = moves[i].score;
+                    bestMove = i;
                 }
             }
-            console.log("mm" , best)
-            return best;
         }
+        return moves[bestMove];
     }
-
-    const _findBestMove = (board, aiPlayer) => {
-        let bestValue = -1000;
-        let bestMove = -1;
-
-        for(let i = 0; i < board.length; i++) {
-            if(board[i] === null) {
-                board[i] = aiPlayer.getSign
-            }
-            let moveVal = _minimax(board, 0, false)
-            board[i] = null;
-            if(moveVal > bestValue) {
-                bestMove = i;
-                bestValue = moveVal;
-            }
-        }
-        console.log("best move is ", bestMove)
-        return bestMove;
-    }
-
-    const bestMove = () => _findBestMove(GameBoard.board, aiPlayer)
-
-    return { bestMove }
+    return { _minimax }
 }
 
 const GameController = (() => {
@@ -162,8 +162,8 @@ const GameController = (() => {
     }
 
     const aiTurn = () => {
-        let bestMove = ai.bestMove();
-        console.log("best move", bestMove)
+        let bestMove = ai._minimax(GameBoard.board, 0, true)
+        console.log("cpu", bestMove)
     }
 
     const _checkTurn = () => {
