@@ -62,32 +62,36 @@ const AiController = (player1, aiPlayer) => {
             return score;
         }
 
-        if(GameBoard.isMoves(board) === 'draw') {
+        console.log("moves",GameBoard.isMoves(board))
+        if(!GameBoard.isMoves(board)) {
             return 0;
         }
 
         if(isMax) {
             let best = -1000;
-            board.forEach((cell, index) => {
-                if(board[index] === null){
-                    console.log("sign", aiPlayer.getSign)
-                    board[index] = aiPlayer.getSign
+            for(let i = 0; i < board.length; i++ ) {
+                console.log("loop max", i , board[i] === null)
+                if(board[i] === null){
+                    board[i] = aiPlayer.getSign
+                    console.log("min board", board)
                     best = Math.max(best, _minimax(board, depth +1, !isMax));
-                    board[index] = "1"
+                    board[i] = null
                 }
-            })
+            }
             console.log("mm" , best)
             return best;
         }
         else {
             let best = 1000;
-            board.forEach((cell, index) => {
-                if(board[index] === null){
-                    board[index] = player1.getSign
+            for(let i = 0; i < board.length; i++ ){
+                console.log("loop min", i , board[i] === null)
+                if(board[i] === null){
+                    board[i] = player1.getSign
+                    console.log("min p board", board)
                     best = Math.min(best, _minimax(board, depth +1, !isMax));
-                    board[index] = "1"
+                    board[i] = null
                 }
-            })
+            }
             console.log("mm" , best)
             return best;
         }
@@ -97,17 +101,17 @@ const AiController = (player1, aiPlayer) => {
         let bestValue = -1000;
         let bestMove = -1;
 
-        board.forEach((cell, index) => {
-            if(board[index] === null) {
-                board[index] = aiPlayer.getSign
+        for(let i = 0; i < board.length; i++) {
+            if(board[i] === null) {
+                board[i] = aiPlayer.getSign
             }
-            let moveVal = _minimax(board, 0, true)
-            board[index] = null;
+            let moveVal = _minimax(board, 0, false)
+            board[i] = null;
             if(moveVal > bestValue) {
-                bestMove = index;
+                bestMove = i;
                 bestValue = moveVal;
             }
-        })
+        }
         console.log("best move is ", bestMove)
         return bestMove;
     }
@@ -158,13 +162,8 @@ const GameController = (() => {
     }
 
     const aiTurn = () => {
-        console.log("1", _currentPlayer.getSign, ai.bestMove())
-        GameBoard.placeSign(_currentPlayer.getSign, ai.bestMove());
-        _currentPlayer.setMove(ai.bestMove());
-        turn++;
-        let hasWon = GameBoard.checkWin(_currentPlayer)
-        hasWon ? console.log(_currentPlayer.name + " has won") : null;
-        _checkTurn();
+        let bestMove = ai.bestMove();
+        console.log("best move", bestMove)
     }
 
     const _checkTurn = () => {
