@@ -100,10 +100,8 @@ const AiController = (player1, aiPlayer) => {
     }
 
     const randomMove = (board) => {
-        console.log("random", GameBoard.getBoard())
         let emptySpaces = GameBoard.findEmptySpaces(GameBoard.getBoard());
         const randomNum = Math.floor(Math.random() * emptySpaces.length)
-        console.log("tis",Number(emptySpaces[randomNum]))
         return Number(emptySpaces[randomNum]);
     }
 
@@ -236,10 +234,10 @@ const GameController = (() => {
         input.addEventListener("click", () => {difficulty = input.value})
     }) 
     const boardContainer = DisplayController.getBoard();
+    let hasWon = false;
 
     //check if user has selected a sign
     const assignPlayer = (sign) => {
-        console.log(sign)
         if(sign === "O") {
             player1 = Player("player1", "O")   
             player2 = Player("player2", "X")
@@ -259,8 +257,6 @@ const GameController = (() => {
         startButton.textContent = "Reset"
         startButton.addEventListener("click", () => resetGame());
         _currentPlayer = player1;
-        GameBoard.resetBoard();
-
 
         if(player2.getSign === "X"){
             aiTurn(difficulty)
@@ -270,9 +266,10 @@ const GameController = (() => {
 
     const resetGame = () => {
         GameBoard.resetBoard();
-        DisplayController.createBoard();
-        assignPlayer(playerSign);
-        _currentPlayer = player1;
+        hasWon = false;
+        turn = 1;
+        runGame();
+        
     }
 
     //run the player and ai turns
@@ -281,9 +278,12 @@ const GameController = (() => {
             boardContainer.removeEventListener("click", playerTurn)
             GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
             turn++
-            let hasWon = GameBoard.checkWin(_currentPlayer)
+            hasWon = GameBoard.checkWin(_currentPlayer)
             if(hasWon){
                 _endGame(_currentPlayer.name + " has won");
+            }
+            else if(!GameBoard.isMoves()){
+                _endGame("It's a draw!")
             }
             else { 
                 _checkTurn() 
@@ -311,6 +311,9 @@ const GameController = (() => {
         let hasWon = GameBoard.checkWin(_currentPlayer)
         if(hasWon){
             _endGame(_currentPlayer.name + " has won");
+        }
+        else if(!GameBoard.isMoves()){
+            _endGame("It's a draw!")
         }
         else { 
             _checkTurn();
