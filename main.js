@@ -4,7 +4,13 @@ const GameBoard = (() => {
         [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]
     ]
     //create the board array with indexes
-    const board = new Array(9).fill().map((_, index) => index);
+    let board = new Array(9).fill().map((_, index) => index);
+
+    const getBoard = () => board;
+
+    const resetBoard = () => {
+        board = new Array(9).fill().map((_, index) => index);
+    } 
 
     const findEmptySpaces = (gameBoard = board) => {
         return gameBoard.filter(cell => cell !== 'X' && cell !== 'O' );
@@ -46,7 +52,7 @@ const GameBoard = (() => {
         else { return win }
     }
 
-    return {board, placeSign, checkWin, isMoves, findEmptySpaces}
+    return {getBoard, placeSign, checkWin, isMoves, findEmptySpaces, resetBoard}
 })();
 
 const Player = (name, playerSign) => {
@@ -67,33 +73,34 @@ const AiController = (player1, aiPlayer) => {
         console.log("diff", difficulty)
         switch(difficulty) {
             case "easy":
-                console.log("running")
+                console.log("running", GameBoard.getBoard())
                 move.index = randomMove();
                 break;
             case "medium":
                 let randomNum = Math.floor(Math.random()*30);
                 if(randomNum > bestMoveRatio){
-                    move = minimax(GameBoard.board, 0, true)
+                    move = minimax(GameBoard.getBoard(), 0, true)
                 }
                 else { move.index = randomMove()}
                 break;
             case "hard":
                 randomNum = Math.floor(Math.random()*60);
                 if(randomNum > bestMoveRatio){
-                    move = minimax(GameBoard.board, 0, true)
+                    move = minimax(GameBoard.getBoard(), 0, true)
                 }
                 else { move.index = randomMove()}
                 break;
             case "unbeatable":
-                move = minimax(GameBoard.board, 0, true);
+                move = minimax(GameBoard.getBoard(), 0, true);
                 break;
         }
         return move;
 
     }
 
-    const randomMove = () => {
-        let emptySpaces = GameBoard.findEmptySpaces(GameBoard.board);
+    const randomMove = (board) => {
+        console.log("random", GameBoard.getBoard())
+        let emptySpaces = GameBoard.findEmptySpaces(GameBoard.getBoard());
         const randomNum = Math.floor(Math.random() * emptySpaces.length)
         console.log("tis",Number(emptySpaces[randomNum]))
         return Number(emptySpaces[randomNum]);
@@ -180,7 +187,9 @@ const AiController = (player1, aiPlayer) => {
 const DisplayController = (() => {
     const createBoard = () => {
         const container = document.querySelector(".board-container")
-        GameBoard.board.forEach((element, index) => {
+        container.textContent = "";
+        let board = GameBoard.getBoard();
+        board.forEach((element, index) => {
             const cell = document.createElement("div");
             cell.classList.add("cell");
             cell.id = index
@@ -209,10 +218,10 @@ const GameController = (() => {
     //initialise ai
     const ai = AiController(player1, player2)
     let turn = 1; 
-    let _currentPlayer = player1;
+    let _currentPlayer;
     //set start button to run the game
     const startButton = document.querySelector("#startGame");
-    startButton.addEventListener("click", () => runGame())
+    startButton.addEventListener("click", () => runGame(), "once")
     //add listeners for the player sign selection
     let playerSign = DisplayController.getPlayerSelection
     playerSign.forEach((input) => {
@@ -223,6 +232,8 @@ const GameController = (() => {
     difficultyInput.forEach((input) => {
         input.addEventListener("click", () => {difficulty = input.value; console.log(difficulty)})
     })
+    //add gameboard selection listener
+    document.addEventListener("click", (event) => { playerTurn(event) })  
 
     //check if user has selected a sign
     const assignPlayer = (sign) => {
@@ -242,35 +253,60 @@ const GameController = (() => {
     //start the game and add controls
     const runGame = () => {
         DisplayController.createBoard();
+        startButton.textContent = "Reset"
+        startButton.addEventListener("click", () => resetGame());
+        _currentPlayer = player1;
+        GameBoard.resetBoard();
+
 
         if(player2.getSign === "X"){
             aiTurn(difficulty)
         }
-        console.log(difficulty)
-        document.addEventListener("click", (event) => { playerTurn(event) })          
+        console.log(difficulty)        
+    }
+
+    const resetGame = () => {
+        GameBoard.resetBoard();
+        DisplayController.createBoard();
+        assignPlayer(playerSign);
+        _currentPlayer = player1;
     }
 
     //run the player and ai turns
     const playerTurn = async (event) => {
         if(event.target.classList.contains("cell") && event.target.textContent === ""){
             GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
+            console.log("effe", GameBoard.getBoard())
             turn++
             let hasWon = GameBoard.checkWin(_currentPlayer)
-            hasWon ? console.log(_currentPlayer.name + " has won") : null;
+            hasWon ? _endGame(_currentPlayer.name + " has won") : null;
             _checkTurn();
             
         }
         if(_currentPlayer === player2) {
+            console.log("erre", GameBoard.getBoard())
             await new Promise(resolve => setTimeout(resolve, 750));
             aiTurn(difficulty)
         }
     }
 
     const aiTurn = (difficulty) => {
-        let bestMove = ai.aiMove(difficulty)
+        let signPlaced = false;
+        let bestMove;
+        let board = GameBoard.getBoard();
+        console.log("cb", GameBoard.getBoard())
+        while(!signPlaced){
+            bestMove = ai.aiMove(difficulty)
+            if(board[bestMove.index] !== player2.getSign && board[bestMove.index] !== player1.getSign){
+                GameBoard.placeSign(_currentPlayer.getSign, bestMove.index);
+                signPlaced = true;
+            }
+        }
+     
         console.log(_currentPlayer.getSign, bestMove, bestMove.index)
-        GameBoard.placeSign(_currentPlayer.getSign, bestMove.index);
         turn++;
+        let hasWon = GameBoard.checkWin(_currentPlayer)
+        hasWon ? _endGame(_currentPlayer.name + " has won") : null;
         _checkTurn()
     }
 
@@ -281,5 +317,12 @@ const GameController = (() => {
         }
         else _currentPlayer = player1
     }
-    return { runGame, player2 }
+
+    const _endGame = (message) => {
+        document.removeEventListener("click", (event) => playerTurn(event));
+        let messageContainer = document.querySelector("#messageContainer");
+        messageContainer.textContent = message
+    }
+
+    return { runGame }    
 })();
