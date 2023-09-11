@@ -69,6 +69,7 @@ const AiController = (player1, aiPlayer) => {
 
     const aiMove = (difficulty) => {
         let move = {};
+        let randomNum;
         const bestMoveRatio = Math.floor(Math.random()*100);
         console.log("diff", difficulty)
         switch(difficulty) {
@@ -77,7 +78,7 @@ const AiController = (player1, aiPlayer) => {
                 move.index = randomMove();
                 break;
             case "medium":
-                let randomNum = Math.floor(Math.random()*30);
+                randomNum = Math.floor(Math.random()*30);
                 if(randomNum > bestMoveRatio){
                     move = minimax(GameBoard.getBoard(), 0, true)
                 }
@@ -185,8 +186,8 @@ const AiController = (player1, aiPlayer) => {
 }
 
 const DisplayController = (() => {
+    const container = document.querySelector(".board-container")
     const createBoard = () => {
-        const container = document.querySelector(".board-container")
         container.textContent = "";
         let board = GameBoard.getBoard();
         board.forEach((element, index) => {
@@ -197,6 +198,8 @@ const DisplayController = (() => {
         });
     }
 
+    const getBoard = () => container;
+
     const getCell = (index) => {
         return document.getElementById(index);
     }
@@ -206,7 +209,7 @@ const DisplayController = (() => {
     const getDifficulty = document.querySelectorAll('input[name="difficulty"]')
 
     console.log(getDifficulty, getPlayerSelection)
-    return { createBoard, getCell, getPlayerSelection, getDifficulty }
+    return { createBoard, getBoard, getCell, getPlayerSelection, getDifficulty }
 })();
 
 const GameController = (() => {
@@ -225,15 +228,14 @@ const GameController = (() => {
     //add listeners for the player sign selection
     let playerSign = DisplayController.getPlayerSelection
     playerSign.forEach((input) => {
-        input.addEventListener("click", () => {assignPlayer(input.value) ; console.log(input)})
+        input.addEventListener("click", () => {assignPlayer(input.value)})
     })
     //add listeners for the difficulty selection
     let difficultyInput = DisplayController.getDifficulty
     difficultyInput.forEach((input) => {
-        input.addEventListener("click", () => {difficulty = input.value; console.log(difficulty)})
-    })
-    //add gameboard selection listener
-    document.addEventListener("click", (event) => { playerTurn(event) })  
+        input.addEventListener("click", () => {difficulty = input.value})
+    }) 
+    const boardContainer = DisplayController.getBoard();
 
     //check if user has selected a sign
     const assignPlayer = (sign) => {
@@ -253,6 +255,7 @@ const GameController = (() => {
     //start the game and add controls
     const runGame = () => {
         DisplayController.createBoard();
+        boardContainer.addEventListener("click", playerTurn)
         startButton.textContent = "Reset"
         startButton.addEventListener("click", () => resetGame());
         _currentPlayer = player1;
@@ -274,17 +277,20 @@ const GameController = (() => {
 
     //run the player and ai turns
     const playerTurn = async (event) => {
-        if(event.target.classList.contains("cell") && event.target.textContent === ""){
+        if(event.target.classList.contains("cell") && event.target.textContent === "" && _currentPlayer === player1){
+            boardContainer.removeEventListener("click", playerTurn)
             GameBoard.placeSign(_currentPlayer.getSign, event.target.id)
-            console.log("effe", GameBoard.getBoard())
             turn++
             let hasWon = GameBoard.checkWin(_currentPlayer)
-            hasWon ? _endGame(_currentPlayer.name + " has won") : null;
-            _checkTurn();
+            if(hasWon){
+                _endGame(_currentPlayer.name + " has won");
+            }
+            else { 
+                _checkTurn() 
+            }
             
         }
         if(_currentPlayer === player2) {
-            console.log("erre", GameBoard.getBoard())
             await new Promise(resolve => setTimeout(resolve, 750));
             aiTurn(difficulty)
         }
@@ -294,7 +300,6 @@ const GameController = (() => {
         let signPlaced = false;
         let bestMove;
         let board = GameBoard.getBoard();
-        console.log("cb", GameBoard.getBoard())
         while(!signPlaced){
             bestMove = ai.aiMove(difficulty)
             if(board[bestMove.index] !== player2.getSign && board[bestMove.index] !== player1.getSign){
@@ -302,12 +307,15 @@ const GameController = (() => {
                 signPlaced = true;
             }
         }
-     
-        console.log(_currentPlayer.getSign, bestMove, bestMove.index)
         turn++;
         let hasWon = GameBoard.checkWin(_currentPlayer)
-        hasWon ? _endGame(_currentPlayer.name + " has won") : null;
-        _checkTurn()
+        if(hasWon){
+            _endGame(_currentPlayer.name + " has won");
+        }
+        else { 
+            _checkTurn();
+            boardContainer.addEventListener("click", playerTurn)
+        }
     }
 
     //switch player turns
@@ -319,7 +327,6 @@ const GameController = (() => {
     }
 
     const _endGame = (message) => {
-        document.removeEventListener("click", (event) => playerTurn(event));
         let messageContainer = document.querySelector("#messageContainer");
         messageContainer.textContent = message
     }
