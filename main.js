@@ -26,9 +26,7 @@ const GameBoard = (() => {
     const placeSign = (sign, index) => {
         board.splice(index, 1, sign);
         let cell = DisplayController.getCell(index);
-        console.log("sign", sign)
         cell.textContent += sign;
-        console.log(board)
     }
 
     //check for win or draw
@@ -71,10 +69,8 @@ const AiController = (player1, aiPlayer) => {
         let move = {};
         let randomNum;
         const bestMoveRatio = Math.floor(Math.random()*100);
-        console.log("diff", difficulty)
         switch(difficulty) {
             case "easy":
-                console.log("running", GameBoard.getBoard())
                 move.index = randomMove();
                 break;
             case "medium":
@@ -216,7 +212,6 @@ const DisplayController = (() => {
 
     const getDifficulty = () => {
         const difficulty = getDifficultyInputs()
-        console.log(difficulty)
         for(input of difficulty) {
             if(input.checked) {
                 return input.value;
@@ -224,8 +219,6 @@ const DisplayController = (() => {
         }
         return null;
     }
-
-    console.log(getDifficulty, getPlayerSelection)
     return { createBoard, getBoard, getCell, getPlayerSelection, getDifficulty, getDifficultyInputs }
 })();
 
@@ -269,8 +262,7 @@ const GameController = (() => {
         if(player2.getSign === "X"){
             _currentPlayer = player2
             aiTurn(difficulty)
-        }
-        console.log(difficulty)        
+        }       
     }
 
     //set start button to run the game
@@ -320,7 +312,6 @@ const GameController = (() => {
         while(!signPlaced){
             bestMove = ai.aiMove(difficulty)
             if(board[bestMove.index] !== player2.getSign && board[bestMove.index] !== player1.getSign){
-                console.log(bestMove.index)
                 GameBoard.placeSign(_currentPlayer.getSign, bestMove.index);
                 signPlaced = true;
             }
