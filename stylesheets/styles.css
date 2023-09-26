@@ -1,5 +1,14 @@
 @import '../node_modules/bulma/css/bulma.css';
-.board-contianer {
+.background {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.background.is-fullheight {
+  min-height: 100vh;
+}
+
+.board-container {
   display: grid;
   grid-template-columns: repeat(3, 80px);
   grid-template-rows: repeat(3, 80px);
