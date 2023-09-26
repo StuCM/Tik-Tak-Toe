@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="stylesheets/styles.css">
-    <script src="main.js"></script>
     <title>Document</title>
 </head>
 <body>
     <main>
+        <button id="startGame">Start Game</button>
         <div class="board-container">
         </div>
-        <input type="radio" name="player-selection" value="x">X
-        <input type="radio" name="player-selection" value="o">O
+        <div id="messageContainer"></div>
+        <div id="player-selection">
+            <input type="radio" name="player-selection" value="X" checked>X
+            <input type="radio" name="player-selection" value="O">O
+        </div>
+        <div id="difficulty">
+            <input type="radio" name="difficulty" value="easy" checked>Easy
+            <input type="radio" name="difficulty" value="medium">Medium
+            <input type="radio" name="difficulty" value="hard">Hard
+            <input type="radio" name="difficulty" value="unbeatable">Unbeatable
+        </div>
+
     </main>
+    <script src="main.js"></script>
 </body>
 </html>
