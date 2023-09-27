@@ -14,11 +14,23 @@
     display:grid;
     grid-template-columns: repeat(3, 80px);
     grid-template-rows: repeat(3, 80px);
-    gap: 3px;
+    gap: 4px;
+    border-radius: 8px;
+}
+
+.board-container.active {
+    background-color: #00d1b2;
+    border: 5px solid #00d1b2;
 }
 
 .cell {
-    background: grey;
+    background: #363636;
     height: 100%;
     width: 100%;
+    display: flex;
+    font-size: 3rem;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
 }

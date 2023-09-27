@@ -8,20 +8,25 @@
 </head>
 <body>
     <main class="has-background-dark background is-fullheight">
-        <button id="startGame" class="button is-primary mr-auto ml-auto mt-5">Start Game</button>
-        <div class="board-container">
+        <div class="board-container mt-5">
         </div>
-        <div id="messageContainer"></div>
-        <div id="player-selection">
-            <input type="radio" name="player-selection" value="X" checked>X
-            <input type="radio" name="player-selection" value="O">O
+        <div class="has-text-white is-large mt-5" id="messageContainer"></div>
+        <button id="startGame" class="button is-primary mr-auto ml-auto mt-5 mb-5">Start Game</button>
+        <p class="has-text-white mb-2" >Choose your player</p>
+        <div id="player-selection" class="mb-5">
+            <input class="button is-link is-active" type="button" name="player-selection" value="X" checked>
+            <input class="ml-2 button is-link" type="button" name="player-selection" value="O">
         </div>
-        <div id="difficulty">
-            <input type="radio" name="difficulty" value="easy" checked>Easy
-            <input type="radio" name="difficulty" value="medium">Medium
-            <input type="radio" name="difficulty" value="hard">Hard
-            <input type="radio" name="difficulty" value="unbeatable">Unbeatable
+        <label class="has-text-white mb-2" for="difficulty">Choose a difficulty</label>
+        <div class="select is-link">
+            <select name="difficulty" id="difficulty">
+                <option value="easy" selected>Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="unbeatable">Unbeatable</option>
+            </select>
         </div>
+
 
     </main>
     <script src="main.js"></script>

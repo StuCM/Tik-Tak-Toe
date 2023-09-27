@@ -208,18 +208,13 @@ const DisplayController = (() => {
     }
 
 
-    const getDifficultyInputs = () => document.querySelectorAll('input[name="difficulty"]')
+    const getDifficultySelector = document.getElementById('difficulty')
 
     const getDifficulty = () => {
-        const difficulty = getDifficultyInputs()
-        for(input of difficulty) {
-            if(input.checked) {
-                return input.value;
-            }
-        }
-        return null;
+        console.log("diff", getDifficultySelector.value)
+        return getDifficultySelector.value;
     }
-    return { createBoard, getBoard, getCell, getPlayerSelection, getDifficulty, getDifficultyInputs }
+    return { createBoard, getBoard, getCell, getPlayerSelection, getDifficulty}
 })();
 
 const GameController = (() => {
@@ -237,14 +232,11 @@ const GameController = (() => {
         }
     }
     //set default difficulty
-    let difficulty = DisplayController.getDifficulty();
+    let difficulty = "easy";
     //initialise ai
     let ai;
     let turn = 1; 
     let _currentPlayer;
-    //add listeners for the difficulty selection
-    let diffInputs = DisplayController.getDifficultyInputs()
-    for(input of diffInputs) { input.addEventListener("click", (event) => { difficulty = event.target.value })}
     const boardContainer = DisplayController.getBoard();
     let hasWon = false;
 
@@ -252,8 +244,10 @@ const GameController = (() => {
     const runGame = () => {
         DisplayController.createBoard();
         let playerSelection = DisplayController.getPlayerSelection();
+        difficulty = DisplayController.getDifficulty();
         assignPlayer(playerSelection);
         ai = AiController(player1, player2)
+        boardContainer.classList.add("active");
         boardContainer.addEventListener("click", playerTurn)
         startButton.textContent = "Reset"
         startButton.addEventListener("click", () => resetGame());
@@ -311,6 +305,7 @@ const GameController = (() => {
         let board = GameBoard.getBoard();
         while(!signPlaced){
             bestMove = ai.aiMove(difficulty)
+            console.log("best move", bestMove, difficulty)
             if(board[bestMove.index] !== player2.getSign && board[bestMove.index] !== player1.getSign){
                 GameBoard.placeSign(_currentPlayer.getSign, bestMove.index);
                 signPlaced = true;
