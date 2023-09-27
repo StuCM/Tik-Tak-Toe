@@ -7,21 +7,29 @@
     <title>Document</title>
 </head>
 <body>
-    <main>
-        <button id="startGame">Start Game</button>
-        <div class="board-container">
+    <main class="has-background-dark background is-fullheight">
+        <div class="board-container mt-5">
         </div>
-        <div id="messageContainer"></div>
-        <div id="player-selection">
-            <input type="radio" name="player-selection" value="X" checked>X
-            <input type="radio" name="player-selection" value="O">O
+        <div class="has-text-white is-large mt-5" id="messageContainer"></div>
+        <button id="startGame" class="button is-primary mr-auto ml-auto mt-5 mb-5">Start Game</button>
+        <p class="has-text-white mb-2" >Choose your player</p>
+        <div id="player-selection" class="mb-5">
+            <label for="X"></label>
+            <input style="display: none;" id="X" class="w-2 button-sign" type="radio" name="player-selection" value="X">
+            <label class="button is-link button-sign" for="X">X</label>
+            <input style="display: none;" id="O" class="ml-2 is-link button-sign" type="radio" name="player-selection" value="O">
+            <label class="button is-link button-sign ml-2" for="O">O</label>
         </div>
-        <div id="difficulty">
-            <input type="radio" name="difficulty" value="easy" checked>Easy
-            <input type="radio" name="difficulty" value="medium">Medium
-            <input type="radio" name="difficulty" value="hard">Hard
-            <input type="radio" name="difficulty" value="unbeatable">Unbeatable
+        <label class="has-text-white mb-2" for="difficulty">Choose a difficulty</label>
+        <div class="select is-link">
+            <select name="difficulty" id="difficulty">
+                <option value="easy" selected>Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="unbeatable">Unbeatable</option>
+            </select>
         </div>
+
 
     </main>
     <script src="main.js"></script>
