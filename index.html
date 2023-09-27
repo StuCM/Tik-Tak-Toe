@@ -14,8 +14,11 @@
         <button id="startGame" class="button is-primary mr-auto ml-auto mt-5 mb-5">Start Game</button>
         <p class="has-text-white mb-2" >Choose your player</p>
         <div id="player-selection" class="mb-5">
-            <input class="button is-link is-active" type="button" name="player-selection" value="X" checked>
-            <input class="ml-2 button is-link" type="button" name="player-selection" value="O">
+            <label for="X"></label>
+            <input style="display: none;" id="X" class="w-2 button-sign" type="radio" name="player-selection" value="X">
+            <label class="button is-link button-sign" for="X">X</label>
+            <input style="display: none;" id="O" class="ml-2 is-link button-sign" type="radio" name="player-selection" value="O">
+            <label class="button is-link button-sign ml-2" for="O">O</label>
         </div>
         <label class="has-text-white mb-2" for="difficulty">Choose a difficulty</label>
         <div class="select is-link">

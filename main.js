@@ -69,19 +69,20 @@ const AiController = (player1, aiPlayer) => {
         let move = {};
         let randomNum;
         const bestMoveRatio = Math.floor(Math.random()*100);
+        console.log(bestMoveRatio)
         switch(difficulty) {
             case "easy":
                 move.index = randomMove();
                 break;
             case "medium":
-                randomNum = Math.floor(Math.random()*30);
+                randomNum = Math.floor(Math.random()*60);
                 if(randomNum > bestMoveRatio){
                     move = minimax(GameBoard.getBoard(), 0, true)
                 }
                 else { move.index = randomMove()}
                 break;
             case "hard":
-                randomNum = Math.floor(Math.random()*60);
+                randomNum = Math.floor(Math.random()*90);
                 if(randomNum > bestMoveRatio){
                     move = minimax(GameBoard.getBoard(), 0, true)
                 }
@@ -223,12 +224,12 @@ const GameController = (() => {
     //check if user has selected a sign
     const assignPlayer = (sign) => {
         if(sign === "O") {
-            player1 = Player("player1", "O")   
-            player2 = Player("player2", "X")
+            player1 = Player("Player 1", "O")   
+            player2 = Player("Player 2", "X")
         }
         else {
-            player1 = Player("player1", "X")
-            player2 = Player("player2", "O")
+            player1 = Player("Player 1", "X")
+            player2 = Player("Player 2", "O")
         }
     }
     //set default difficulty
@@ -250,7 +251,7 @@ const GameController = (() => {
         boardContainer.classList.add("active");
         boardContainer.addEventListener("click", playerTurn)
         startButton.textContent = "Reset"
-        startButton.addEventListener("click", () => resetGame());
+        startButton.addEventListener("click", () => resetGame(), {once: true});
         _currentPlayer = player1;
 
         if(player2.getSign === "X"){
@@ -261,13 +262,14 @@ const GameController = (() => {
 
     //set start button to run the game
     const startButton = document.querySelector("#startGame");
-    startButton.addEventListener("click", () => runGame(), "once")
+    startButton.addEventListener("click", () => runGame(), {once: true})
 
     const resetGame = () => {
         GameBoard.resetBoard();
+        DisplayController.createBoard();
         hasWon = false;
         turn = 1;
-        startButton.addEventListener("click", () => runGame(), "once")
+        startButton.addEventListener("click", () => runGame(), {once: true})
         startButton.textContent = "Start"
         
         
