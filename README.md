@@ -12,4 +12,4 @@ The main aim of this project was to gain experience building a game system. To o
 
 ## Getting Started
 To play the game please visit here:
-https://tik-tak-toe-alpha-seven.vercel.app/
+https://tik-tak-toe-mocha.vercel.app
